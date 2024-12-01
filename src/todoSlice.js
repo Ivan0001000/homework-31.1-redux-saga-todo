@@ -9,6 +9,7 @@ const initialState = {
 const todoSlice = createSlice({
   name: 'todos',
   initialState,
+  
   reducers: {
     fetchTodosRequest: (state) => {
       state.loading = true;
@@ -88,6 +89,14 @@ const todoSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
+    
+    editTodoRequest: (state, action) => {
+      const { id, newTitle } = action.payload;
+      const todo = state.todos.find((todo) => todo.id === id);
+      if (todo) {
+        todo.title = newTitle;
+      }
+    },    
   },
 });
 
@@ -110,6 +119,7 @@ export const {
   clearTodosRequest,
   clearTodosSuccess,
   clearTodosFailure,
+  editTodoRequest,
 } = todoSlice.actions;
 
 

@@ -6,19 +6,19 @@ import {
   deleteTodoRequest,
   toggleCompleteRequest,
   clearTodosRequest,
+  editTodoRequest,
 } from './todoSlice';
 import './App.css';
 
 function App() {
   const dispatch = useDispatch();
-  const { todos, loading, error } = useSelector((state) => state.todos);
+  const { todos } = useSelector((state) => state.todos);
   const [newTodo, setNewTodo] = useState('');
+  const [editingId, setEditingId] = useState(null);
+  const [editingTitle, setEditingTitle] = useState('');
 
   useEffect(() => {
-    const savedTodos = JSON.parse(localStorage.getItem('todos')) || [];
-    if (savedTodos.length > 0) {
-      dispatch(fetchTodosRequest(savedTodos));
-    }
+    dispatch(fetchTodosRequest());
   }, [dispatch]);
 
   useEffect(() => {
@@ -32,6 +32,19 @@ function App() {
     }
   };
 
+  const handleEdit = (id, title) => {
+    setEditingId(id);
+    setEditingTitle(title);
+  };
+
+  const handleSaveEdit = () => {
+    if (editingTitle.trim()) {
+      dispatch(editTodoRequest({ id: editingId, newTitle: editingTitle }));
+      setEditingId(null);
+      setEditingTitle('');
+    }
+  };
+
   const handleToggleComplete = (id) => {
     dispatch(toggleCompleteRequest(id));
   };
@@ -42,7 +55,7 @@ function App() {
 
   const handleClear = () => {
     dispatch(clearTodosRequest());
-    localStorage.removeItem('todos'); 
+    localStorage.removeItem('todos');
   };
 
   return (
@@ -56,22 +69,36 @@ function App() {
       />
       <button onClick={handleAddTodo}>Add</button>
 
-      {loading && <p>Loading...</p>}
-      {error && <p className="error">{error}</p>}
-
       <ul>
         {todos.map((todo) => (
           <li key={todo.id}>
-            <span
-              style={{
-                textDecoration: todo.completed ? 'line-through' : 'none',
-                cursor: 'pointer',
-              }}
-              onClick={() => handleToggleComplete(todo.id)}
-            >
-              {todo.title}
-            </span>
-            <button onClick={() => handleDelete(todo.id)}>Delete</button>
+            {editingId === todo.id ? (
+              <>
+                <input
+                  type="text"
+                  value={editingTitle}
+                  onChange={(e) => setEditingTitle(e.target.value)}
+                />
+                <button onClick={handleSaveEdit}>Save</button>
+                <button onClick={() => setEditingId(null)}>Cancel</button>
+              </>
+            ) : (
+              <>
+                <span
+                  style={{
+                    textDecoration: todo.completed ? 'line-through' : 'none',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => handleToggleComplete(todo.id)}
+                >
+                  {todo.title}
+                </span>
+                <button onClick={() => handleEdit(todo.id, todo.title)}>
+                  Edit
+                </button>
+                <button onClick={() => handleDelete(todo.id)}>Delete</button>
+              </>
+            )}
           </li>
         ))}
       </ul>
